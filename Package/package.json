@@ -1,0 +1,40 @@
+{
+  "name": "priy",
+  "version": "1.0.11",
+  "description": "Blazing-fast reactive frontend framework with .pri compiler and Vite plugin support.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./plugin": "./plugin.js",
+    "./internal": "./internal.js",
+    "./router": "./router.js"
+  },
+  "files": [
+    "compiler/",
+    "erros/",
+    "parser/",
+    "pri-plugin/",
+    "React/",
+    "utils/",
+    "index.js",
+    "internal.js",
+    "plugin.js",
+    "router.js"
+  ],
+  "keywords": [
+    "reactive",
+    "framework",
+    "vite",
+    "frontend",
+    "compiler"
+  ],
+  "author": "Jay Govind Mahato",
+  "license": "MIT",
+  "dependencies": {
+    "acorn": "^8.14.1",
+    "astring": "^1.9.0",
+    "fast-glob": "^3.3.3",
+    "js-beautify": "^1.15.4"
+  }
+}
