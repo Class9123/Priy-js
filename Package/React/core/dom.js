@@ -25,5 +25,5 @@ function flushEffectQueue() {
     }
   }
   const end = performance.now();
-  console.log(`Timen taken ${(end - start).toFixed(7)}ms`);
+ // console.log(`Timen taken ${(end - start).toFixed(7)}ms`);
 }

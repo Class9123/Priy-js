@@ -36,11 +36,7 @@ function _reactive(fn, exp = null) {
 }
 
 function _appendTo(parent, child) {
-  if (child._$$$$$___$$IsComp) {
-    child._$mountTo(parent);
-  } else {
-    parent.appendChild(child);
-  }
+  parent.appendChild(child);
 }
 
 function _wrapProps(props) {

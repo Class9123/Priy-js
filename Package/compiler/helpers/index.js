@@ -24,6 +24,10 @@ function isJsx(node) {
   return node.type === "#jsx";
 }
 
+function isSpread(node){
+  return node.type === "#spread";
+}
+
 function getType(node) {
   let type ;
   if(isText(node) || isJsx(node) ) type ="Text"

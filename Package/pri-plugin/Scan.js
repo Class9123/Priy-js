@@ -7,9 +7,9 @@ import beautify from "js-beautify";
 
 function hash(content) {
   return crypto
-    .createHash("sha256")
-    .update(content || "")
-    .digest("hex");
+  .createHash("sha256")
+  .update(content || "")
+  .digest("hex");
 }
 
 function normalizeScript(script) {
@@ -28,7 +28,9 @@ export function Scan() {
   function scanAndCache(absFilePath) {
     const data = scanComponent(absFilePath);
     const scriptHash = hash(normalizeScript(data.script));
-    cacheMap.set(absFilePath, { data, scriptHash, hasChanged: true });
+    cacheMap.set(absFilePath, {
+      data, scriptHash, hasChanged: true
+    });
     return data;
   }
 
@@ -36,14 +38,14 @@ export function Scan() {
     name: "vite-scan-pri-plugin",
 
     configureServer(server) {
-      const priGlob = path.resolve(process.cwd(), "src/**/*.pri");
-      const files = fg.sync(priGlob);
-     // files.forEach(scanAndCache);
+      const priGlob = path.resolve(process.cwd(), "./src/**/*.{js,jsx}");
+      //const files = fg.sync(priGlob);
+      // files.forEach(scanAndCache);
       server.watcher.add(priGlob);
     },
 
     load(id) {
-      if (!id.endsWith(".pri")) return null;
+      if (!(id.endsWith(".pri") || id.endsWith(".jsx"))) return null;
 
       const absFile = id;
       let cached = cacheMap.get(absFile);
@@ -58,24 +60,27 @@ export function Scan() {
         }
       }
 
-      const { data } = cached;
-      
+      const {
+        data
+      } = cached;
+
       // Auto-inject HMR accept block
       return `
-        ${data.script}
+      ${data.script}
 
-        if (import.meta.hot) {
-          import.meta.hot.accept((newModule) => {
-          console.log(newModule);
-          });
-        }
+      if (import.meta.hot) {
+      import.meta.hot.accept((newModule) => {
+      console.log(newModule);
+      });
+      }
       `;
     },
 
-    handleHotUpdate({ file, server, modules }) {
-      if (!file.endsWith(".pri")) return [];
-
-      console.log("[PRI-HMR] updating:", file);
+    handleHotUpdate( {
+      file, server, modules
+    }) {
+      if (!(file.endsWith(".pri") || file.endsWith(".jsx"))) return [];
+     // console.log("[PRI-HMR] updating:", file);
 
       // 1. Re-scan and update cache
       scanAndCache(file);

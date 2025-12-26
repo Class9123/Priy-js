@@ -12,10 +12,10 @@ export default class TextProcessor extends BaseProcessor {
         const ${textId} = _$._txt('');
         const ${effectFn} = () => {
           if (!${textId}.isConnected) return;
-          ${textId}.data = String(${rawText} ?? '');
+          ${textId}.data = ${rawText}
         };
         _$._reactive(${effectFn}, () => ${rawText} );
-        ${textId}.data = String(${rawText} ?? "")
+        ${textId}.data = ${rawText}
       
       `);
     } else {

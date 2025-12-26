@@ -11,6 +11,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/generator": "^7.28.5",
+    "@babel/parser": "^7.28.5",
+    "@babel/traverse": "^7.28.5",
+    "@babel/types": "^7.28.5",
     "acorn": "^8.15.0",
     "astring": "^1.9.0",
     "autoprefixer": "^10.4.21",
@@ -18,6 +23,8 @@
     "eruda": "^3.4.3",
     "fast-glob": "^3.3.3",
     "js-beautify": "^1.15.4",
+    "lucide": "^0.562.0",
+    "motion": "^12.23.26",
     "postcss": "^8.5.6",
     "postcss-selector-parser": "^7.1.0",
     "tailwindcss": "^3.4.17"

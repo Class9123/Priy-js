@@ -1,4 +1,7 @@
-import { getTagName, isComponentTag } from "../helpers/index.js";
+import {
+  getTagName,
+  isComponentTag
+} from "../helpers/index.js";
 import BaseProcessor from "./baseModel.js";
 import ConditionalProcessor from "./conditionalPr.js";
 import LoopProcessor from "./loopPr.js";
@@ -40,7 +43,7 @@ export default class RegularProcessor extends BaseProcessor {
   ) {
     /*
       Must reas this ::
-       parentId means the rootId here if isRoot is true 
+       parentId means the rootId here if isRoot is true
       */
     const tag = getTagName(node);
     const attrs = node.props;
@@ -49,7 +52,7 @@ export default class RegularProcessor extends BaseProcessor {
       addElement: true
     };
 
-    if (isComponentTag(tag)) {
+    if (isComponentTag(tag) || tag.includes(".")) {
       const arr = [];
       node.children.forEach(childNode => {
         arr.push(this.registry.processNode(childNode, parentId, true));
@@ -68,35 +71,35 @@ export default class RegularProcessor extends BaseProcessor {
       const id = this.uidGen.nextElement();
       if (isComponentChild) {
         this.addCode(`const ${id} = () => ${tag}(${props})
-        `);
+          `);
         return id;
       }
       if (isRoot) {
         this.addCode(`return ${tag}(${props})`)
-      } else {
+      } else if (parentId !== null) {
         this.addCode(`
-      _$.mountComponent(() => ${tag}(${props}), ${parentId} );
-      `);
+          _$.mountComponent(() => ${tag}(${props}), ${parentId} );
+          `);
       }
       return;
     }
 
-    const id = isRoot ? parentId : this.uidGen.nextElement();
+    const id = isRoot ? parentId: this.uidGen.nextElement();
 
     if (tag === "svg" || isSvgChilds) {
       this.addCode(`const ${id} = _$._elNs("${tag}");`);
-    } else if (tag === "childs") {
-      if (node.isVoidTag !== true) {
-        throw new Error("childs should be always a void tag");
+    } else if (tag === "childs" && parentId !== null) {
+      if (node.children.length !== 0) {
+        throw new Error("childs should not  childrens");
         return;
       }
       this.addCode(`
-      if (props.children)
-      props.children.forEach(child => {
+        if (props.children)
+        props.children.forEach(child => {
         if (typeof child === "function") _$.mountComponent(child, ${parentId})
         else ${parentId}.appendChild(child)
-      })
-      `);
+        })
+        `);
       return;
     } else if (tag === "fragment") {
       this.addCode(`const ${id} = _$._fr();`);
@@ -123,10 +126,12 @@ export default class RegularProcessor extends BaseProcessor {
       this.processChildren(node, id);
     }
 
-    if (!isRoot && controllers.addElement && !isComponentChild) {
+    if (!isRoot && controllers.addElement && !isComponentChild && parentId !== null) {
       this.addCode(`_$._appendTo(${parentId},${id});`);
     }
-
+    if (isRoot) {
+      this.addCode(`return ${id}`)
+    }
     return id;
   }
 
@@ -153,7 +158,9 @@ export default class RegularProcessor extends BaseProcessor {
       controllers.processChildren = false;
       controllers.addElement = false;
     } else if (key === "ref") {
-      this.addCode(`${val} = ${elId};`);
+      this.addCode(
+        `(${val})(${elId})`
+      );
     } else if (key === "html") {
       this.addCode(`${elId}.innerHTML += ${val};`);
     } else if (key === "show") {
@@ -162,14 +169,14 @@ export default class RegularProcessor extends BaseProcessor {
       this.addCode(`
         let ${prev};
         const ${fn} = () => {
-          const _c = ${val};
-          if (_c !== ${prev}) {
-            ${elId}.style.display = _c ? "" : "none";
-            ${prev} = _c;
-          }
+        const _c = ${val};
+        if (_c !== ${prev}) {
+        ${elId}.style.display = _c ? "" : "none";
+        ${prev} = _c;
+        }
         };
         _$._reactive(${fn});
-      `);
+        `);
     } else if (key === "for") {
       this.processors.for.process(node, elId, parentId, val);
       controllers.processChildren = false;
@@ -178,12 +185,22 @@ export default class RegularProcessor extends BaseProcessor {
   }
 
   handleAttr(elId, name, valueNode) {
-    let isDynamic = valueNode.type === "#jsx";
-    const val = isDynamic ? valueNode.nodeValue : valueNode;
+    if (valueNode.type==="#spread"){
+      const val = valueNode.nodeValue
+      this.addCode(`
+      for (const key in ${val}){
+        ${elId}.setAttribute(key, JSON.stringify(${val}[key]) )
+      }
+      `)
+      return
+    }
+    let isDynamic = valueNode.type === "#jsx"
+    const val = isDynamic ? valueNode.nodeValue: valueNode;
 
     if (name.includes(":")) {
       if (!isDynamic) throw new Error('durective ":" expects jsx values only ');
-      const [prefix, key] = name.split(":").map(s => s.trim());
+      const [prefix,
+        key] = name.split(":").map(s => s.trim());
 
       if (prefix === "on") {
         // Event handler binding
@@ -197,18 +214,21 @@ export default class RegularProcessor extends BaseProcessor {
     if (isDynamic) {
       const fn = this.uidGen.nextEffectFn();
       const code = isUnique
-        ? `${elId}.${name} = ${val};`
-        : `${elId}.setAttribute("${name}",${val});`;
+      ? `${elId}.${name} = ${val};`:
+      `${elId}.setAttribute("${name}",${val})
+      `
+      
       this.addCode(`
-      const ${fn} = () => {
+        const ${fn} = () => {
         if (!${elId}.isConnected) return;
         ${code}
-      };
-      _$._reactive(${fn} , ()=>${val});
-      ${code}
-    `);
+        };
+        _$._reactive(${fn} , ()=>${val});
+        ${code}
+        `);
     } else {
-      this.addCode(`${elId}.setAttribute("${name}","${val}")`);
+      this.addCode(
+        `${elId}.setAttribute("${name}","${val}");`)
     }
   }
 }

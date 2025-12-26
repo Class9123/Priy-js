@@ -1,5 +1,8 @@
 // stores variables used in multiple files
-import { queueEffect } from "./core/dom.js";
+import {
+  queueEffect
+} from "./core/dom.js";
+
 let currentEffect = null;
 function setCurrentEffect(effect) {
   currentEffect = effect;
@@ -33,19 +36,19 @@ function mountComponent(Component, parent) {
   return withContext(parent, () => {
     const prev = [...pendingMounts];
     pendingMounts.length = 0;
-    
+
     const el = Component();
-    
+
     if (pendingMounts.length > 0 && el) {
       mountMap.set(el, pendingMounts);
     }
-    
+
     if (parent && !parent.contains(el) && el) {
       parent.appendChild(el)
     }
-    
+
     pendingMounts.forEach(fn => fn());
-    
+
     pendingMounts = [...prev];
 
     return el;
@@ -53,7 +56,8 @@ function mountComponent(Component, parent) {
 }
 
 function mount(fn, parent) {
-  mountComponent(fn, parent)
+  mountComponent(fn,
+    parent)
 }
 
 export {
